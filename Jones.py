@@ -1,4 +1,4 @@
-from sympy import symbols,simplify
+from sympy import symbols, simplify
 from PlanarDiagram import PlanarDiagram
 A,t = symbols('A t',positive = True)
 def kauffman(crossings):
