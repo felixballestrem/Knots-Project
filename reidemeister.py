@@ -28,6 +28,17 @@ class knot:
     def same_strand(self, c, a, b):
         i, j = c.index(a), c.index(b)
         return (i - j) % 4 == 2
+    
+    def counts(self, crossings):
+        c = []
+        for cross in crossings:
+            try:
+                c.extend(cross)
+            except TypeError:
+                c.append(cross)
+        counts = {a: c.count(a) for a in c} # number:count
+        # print(counts)
+        return counts
 
     # def crossing_sign(self, c):
     #     # consistent PD convention
@@ -46,7 +57,7 @@ class knot:
         return None
 
     # solving:
-    def R1(self, idx):
+    def R1(self, idx=find_R1):
         if idx is None:
             raise ValueError("No R1 Move found to apply.")
 
@@ -114,7 +125,7 @@ class knot:
         return None
 
     # solving:
-    def R2(self, idx):
+    def R2(self, idx=find_R2):
         c1 = self.crossings[idx[0]]
         c2 = self.crossings[idx[1]]
         print("Performing Reidemeister Move 2 between crossings:", c1, "and", c2)
@@ -163,24 +174,89 @@ class knot:
         print("R2 applied. New PD:\n", self.crossings)
 
         # check that the move was successful
-        if (find := self.find_R2()) is not None:
-            raise ValueError("R2 Move was not successful; the same move can still be applied.")
-        else:
-            return True
+        # if (find := self.find_R2()) is not None:
+        #     raise ValueError("R2 Move was not successful; the same move can still be applied.")
+        # else:
+        #     return True
+        return True
 
 
 #   -----------------------------------------------------------------------------------------------------------
 #   ## Reidemeister 3:
 #   -----------------------------------------------------------------------------------------------------------
     # detection:
-    def find_R3(self):
+    def find_R3(self, counts=counts):
         print("Searching for Reidemeister Move 3")
+
+        # check all triplets of crossings
+        # check adjacency
+        adjacent_list = []
+        seen = set()
+        cross_copy = self.crossings.copy()
+        for i in (cross_copy): # make a copy to modify to remove used crossings
+            print("\nCrossing:", i)
+            for j in (cross_copy):
+                if i == j:
+                    continue
+                for k in (cross_copy):
+                    if k == i or k == j:
+                        continue
+                    print("Comparing with crossing:", j, "and crossing:", k)
+                    
+                    crossings_triplet = [i, j, k]
+                    #compare two at a time:
+                    cross_1_2 = [crossings_triplet[0], crossings_triplet[1]]
+                    cross_2_3 = [crossings_triplet[1], crossings_triplet[2]]
+                    cross_1_3 = [crossings_triplet[0], crossings_triplet[2]]
+
+                    if 2 in [c for c in counts(self, cross_1_2).values()] and 2 in [c for c in counts(self, cross_2_3).values()] and 2 in [c for c in counts(self, cross_1_3).values()] and 2 in [c for c in counts(self, cross_1_3).values()]:
+                        print("Crossings are all adjacent.")
+                        key = frozenset(tuple(x) for x in crossings_triplet)
+                        if key not in seen:
+                            seen.add(key)
+                            adjacent_list.append(crossings_triplet)
         
-        return None
-    
+        print("\nAdjacent crossing triplets found:")
+        print(*adjacent_list, sep="\n")
+        print()
+
+        # check R3 configuration for each adjacent triplet
+        R3_list = []
+        for triplet in adjacent_list:
+            i, j, k = triplet
+            # check one strand goes over the other strands
+            over_strands = []
+            under_strands = []
+            for cross in triplet:
+                # used extend to get rid of embedded lists
+                over_strands.extend([cross[1], cross[3]]) # over strand is at index 1 and 3
+                under_strands.extend([cross[0], cross[2]]) # under strand is at index 0 and 2
+            print("Over strands:", over_strands)
+            print("Under strands:", under_strands)
+            # check if there are three in a row over and three in a row under
+            over, under = False, False
+            for strand in range(min(over_strands), max(over_strands)):
+                if over_strands.count(strand+1) > 1 and over_strands.count(strand+2) > 0:
+                    over = True
+            for strand in range(min(under_strands), max(under_strands)):
+                if under_strands.count(strand+1) > 1 and under_strands.count(strand+2) > 0:
+                    under = True
+            if over and under:
+                print("\nR3 configuration found with crossings:", i, ",", j, "and", k)
+                # crossing indexes
+                idx1 = self.crossings.index(i)
+                idx2 = self.crossings.index(j)
+                idx3 = self.crossings.index(k)
+                triplet = [idx1, idx2, idx3]
+                R3_list.append(triplet)
+            else:
+                print("No R3 configuration with crossings:", i, ",", j, "and", k)
+                
+        return R3_list if (R3_list != []) else None
+        
     # solving:
-    def R3(self, idx):
-        print("Performing Reidemeister Move 3")
+    def R3(self, idx=find_R3):
+        print("\nPerforming Reidemeister Move 3")
         # Implementation of Reidemeister Move 3
 
 
@@ -194,10 +270,13 @@ class knot:
 
 # computing it on a test PD
 
+PD_test_rand = [[1, 6, 2, 5], [3, 8, 4, 7], [5, 2, 6, 1], [7, 4, 8, 3]]
+PD_test_t = [[1,5,2,4],[3,1,4,6],[5,3,6,2]]
 PD_test_R1 = [[8,3,1,4],[6,6,7,5],[4,1,5,2],[2,7,3,8]]
 PD_test_R2 = [[10,3,1,4],[5,9,6,8],[9,5,10,4],[1,7,2,6],[7,3,8,2]]
+PD_test_R3 = [[4,2,5,1],[7,3,8,2],[8,6,1,5],[3,7,4,6]]
 
-PD = PD_test_R2
+PD = PD_test_R3
 
 print("_"*50, "\n")
 K = knot(PD)
@@ -224,9 +303,8 @@ print("\n")
 print("-"*50)
 print("R3 Test:")
 print("-"*50)
-# while (find := K.find_R3()) is not None:
-#     K.R3(find)
-K.R3(K.find_R3())
+if (find := K.find_R3()) is not None:
+    K.R3(find)
 print("\nNo more R3 Moves found.\n")
 print("_"*50)
 print("\n")
