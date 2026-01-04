@@ -31,6 +31,11 @@ class knot:
         counts = {a: c.count(a) for a in c} # number:count
         # print(counts)
         return counts
+    
+    def wrap(self, s):
+        N = max(self.arcs())
+        return (s - 1) % N + 1
+
 
     # def crossing_sign(self, c):
     #     # consistent PD convention
@@ -198,14 +203,14 @@ class knot:
         seen = set()
         cross_copy = self.crossings.copy()
         for i in (cross_copy): # make a copy to modify to remove used crossings
-            print("\nCrossing:", i)
+            # print("\nCrossing:", i)
             for j in (cross_copy):
                 if i == j:
                     continue
                 for k in (cross_copy):
                     if k == i or k == j:
                         continue
-                    print("Comparing with crossing:", j, "and crossing:", k)
+                    # print("Comparing with crossing:", j, "and crossing:", k)
                     
                     crossings_triplet = [i, j, k]
                     #compare two at a time:
@@ -214,7 +219,7 @@ class knot:
                     cross_1_3 = [crossings_triplet[0], crossings_triplet[2]]
 
                     if 2 in [c for c in counts(self, cross_1_2).values()] and 2 in [c for c in counts(self, cross_2_3).values()] and 2 in [c for c in counts(self, cross_1_3).values()] and 2 in [c for c in counts(self, cross_1_3).values()]:
-                        print("Crossings are all adjacent.")
+                        # print("Crossings are all adjacent.")
                         key = frozenset(tuple(x) for x in crossings_triplet)
                         if key not in seen:
                             seen.add(key)
@@ -234,18 +239,23 @@ class knot:
                 # used extend to get rid of embedded lists
                 over_strands.extend([cross[1], cross[3]]) # over strand is at index 1 and 3
                 under_strands.extend([cross[0], cross[2]]) # under strand is at index 0 and 2
-            print("\nOver strands:", over_strands)
-            print("Under strands:", under_strands)
-            # check if there are three in a row over and three in a row under
+            # print("\nOver strands:", over_strands)
+            # print("Under strands:", under_strands)
+            
+            # check if there are three in a row over and three in a row under for R3 move
             over, under = False, False
-            for strand in range(min(over_strands), max(over_strands)):
-                if over_strands.count(strand+1) > 1 and over_strands.count(strand+2) > 0:
+            for s in set(over_strands):
+                s1 = self.wrap(s + 1)
+                s2 = self.wrap(s + 2)
+                if over_strands.count(s1) > 1 and over_strands.count(s2) > 0:
                     over = True
-            for strand in range(min(under_strands), max(under_strands)):
-                if under_strands.count(strand+1) > 1 and under_strands.count(strand+2) > 0:
+            for s in set(under_strands):
+                s1 = self.wrap(s + 1)
+                s2 = self.wrap(s + 2)
+                if under_strands.count(s1) > 1 and under_strands.count(s2) > 0:
                     under = True
             if over and under:
-                print("R3 configuration found with crossings:", i, ",", j, "and", k)
+                # print("\nR3 configuration found with crossings:", i, ",", j, "and", k)
                 # crossing indexes
                 idx1 = self.crossings.index(i)
                 idx2 = self.crossings.index(j)
@@ -253,10 +263,15 @@ class knot:
                 triplet = [idx1, idx2, idx3]
                 R3_list.append(triplet)
             else:
-                print("No R3 configuration with crossings:", i, ",", j, "and", k)
-        print("\nR3 Moves found at crossing indexes:")
-        print(*R3_list, sep="\n")
-        print("With crossings:", *[[self.crossings[i] for i in c] for c in R3_list], sep="\n")
+                None
+                # print("No R3 configuration with crossings:", i, ",", j, "and", k)
+                
+        if R3_list != []:
+            print("\nR3 Moves found at crossing indexes:")
+            print(*R3_list, sep="\n")
+            print("With crossings:", *[[self.crossings[i] for i in c] for c in R3_list], sep="\n")
+        else:
+            print("No R3 moves found")
         return R3_list if (R3_list != []) else None
         
     # solving:
@@ -267,61 +282,101 @@ class knot:
             c1 = self.crossings[triplet[0]]
             c2 = self.crossings[triplet[1]]
             c3 = self.crossings[triplet[2]]
-            print("Applying R3 Move to crossings:", c1, ",", c2, "and", c3)
+            print("\nApplying R3 Move to crossings:", c1, ",", c2, "and", c3)
             
             strands_over = []
             strands_under = []
             for cross in [c1, c2, c3]:
                 strands_over.extend([cross[1], cross[3]]) # used extend to get rid of embedded lists
                 strands_under.extend([cross[0], cross[2]])
-            print("Over strands:", strands_over)
-            print("Under strands:", strands_under)    
+            # print("Over strands:", strands_over)
+            # print("Under strands:", strands_under)    
             # get rid of duplicates
             strands_over = list(set(strands_over))
             strands_under = list(set(strands_under))
-            print("Unique over strands:", strands_over)
-            print("Unique under strands:", strands_under)
+            # print("Unique over strands:", strands_over)
+            # print("Unique under strands:", strands_under)
+            
+            # seperate strands 
             for each in strands_over:
-                if each+1 in strands_over and each+2 in strands_over:
-                    strand1 = (each, each+1, each+2)
+                s1 = self.wrap(each + 1)
+                s2 = self.wrap(each + 2)
+                if s1 in strands_over and s2 in strands_over:
+                    strand1 = (each, s1, s2)
             for each in strands_under:
-                if each+1 in strands_under and each+2 in strands_under:
-                    strand2 = (each, each+1, each+2)
+                s1 = self.wrap(each + 1)
+                s2 = self.wrap(each + 2)
+                if s1 in strands_under and s2 in strands_under:
+                    strand2 = (each, s1, s2)
             strands = set(strands_over + strands_under)
-            print("Strands involved in R3 move:", strands)
-            strand3 = []
-            for each in strands:
-                if each not in strand1 and each not in strand2:
-                    strand3.append(each)
-            strand3 = tuple(strand3)
-            print("First(Over) strand involved in R3 move:", strand1)
-            print("Second(Under) strand involved in R3 move:", strand2)
-            print("Third(Over-Under) strand involved in R3 move:", strand3)
+            # print("Strands involved in R3 move:", strands)
+            strand3 = tuple(set(strands) - set(strand1) - set(strand2))
             
-            c1_over = [strands_over[0], strands_over[1]]
-            c2_over = [strands_over[1], strands_over[2]]
-            c3_over = [strands_over[2], strands_over[3]]
-            c1_under = [strands_under[0], strands_under[1]]
-            c2_under = [strands_under[1], strands_under[2]]
-            c3_under = [strands_under[2], strands_under[3]]
+            print("First(Over) strand involved in R3 move: A = ", strand1)
+            print("Second(Over-Under) strand involved in R3 move: B = ", strand3)
+            print("Third(Under) strand involved in R3 move: C = ", strand2)
+            
+            ## Implementation of R3 moves on the PD:
+            
+            # works for under bottom going left, both going up:
+            if False:
+                A = strand1
+                B = strand3
+                C = strand2
+
+                # Crossings
+                A_C = [B[0], A[1], B[1], A[0]] # A over C
+                A_B = [C[0], A[2], C[1], A[1]] # A over B
+                B_C = [C[1], B[2], C[2], B[1]] # B over C
+                
+                print(A_C)
+                print(A_B)
+                print(B_C)
+            
+            # works for under bottom going right, both going up
+            elif False:
+                A = strand1
+                B = strand3
+                C = strand2
+
+                # Crossings
+                A_C = [C[1], A[1], C[2], A[0]] # A over C
+                A_B = [B[1], A[2], B[2], A[1]] # A over B
+                B_C = [C[0], B[1], C[1], B[0]] # B over C
+                
+                print(A_C)
+                print(A_B)
+                print(B_C)
+
+            # works for under bottom going right, both going down
+            elif True:
+                A = strand1
+                B = strand3
+                C = strand2
+                
+                # Crossings
+                A_C = [C[1], A[1], C[2], A[0]] # A over C
+                A_B = [B[2], A[1], B[1], A[2]] # A over B
+                B_C = [C[0], B[1], C[1], B[0]] # B over C
                             
-            
-            
-            # new_c1 = # 
-            # new_c2 =
-            # new_c3 =
-            
-            
-            
-            
-            
+                print(A_C)
+                print(A_B)
+                print(B_C)
+                
+            # works for under bottom going left, both going down:
+            elif False:
+                A = strand1
+                B = strand3
+                C = strand2
 
-            # rearrange crossings
-            self.crossings[triplet[0]], self.crossings[triplet[1]], self.crossings[triplet[2]] = c2, c3, c1
-            print("R3 applied. New PD:\n", self.crossings)
-
-
-
+                # Crossings
+                A_C = [B[1], A[0], B[0], A[1]] # A over C
+                A_B = [C[0], A[2], C[1], A[1]] # A over B
+                B_C = [C[2], B[1], C[1], B[2]] # B over C
+                
+                print(A_C)
+                print(A_B)
+                print(B_C)
 
 
 
@@ -339,42 +394,51 @@ PD_test_R3 = [[4,2,5,1],[7,3,8,2],[8,6,1,5],[3,7,4,6]]
 
 PD = PD_test_R3
 
-print("_"*50, "\n")
+# print("_"*50, "\n")
+# K = knot(PD)
+# print("_"*50, "\n")
+
+# print("-"*50)
+# print("R1 Test:")
+# print("-"*50)
+# while True:
+#     find = K.find_R1()
+#     if find is None:
+#         break
+#     K.R1(find)
+# print("\nNo more R1 Moves found.\n")
+# print("_"*50)
+# print("\n")
+
+# print("-"*50)
+# print("R2 Test:")
+# print("-"*50)
+# while True:
+#     find = K.find_R2()
+#     if find is None:
+#         break
+#     K.R2(find)
+# print("\nNo more R2 Moves found.\n")
+# print("_"*50)
+# print("\n")
+
+# print("-"*50)
+# print("R3 Test:")
+# print("-"*50)
+# find = K.find_R3()
+# if find is not None:
+#     K.R3(find)
+# print("\nNo more R3 Moves found.\n")
+# print("_"*50)
+# print("\n")
+
+PD1 = [[4,2,5,1],[8,6,1,5],[3,7,4,6]]
+PD2 = [[5,1,4,2],[8,6,1,5],[4,6,3,7]]
+PD3 = [[5,1,4,2],[1,5,8,6],[4,6,3,7]]
+PD4 = [[4,2,5,1],[1,5,8,6],[3,7,4,6]]
+
+PD = PD2
 K = knot(PD)
-print("_"*50, "\n")
 
-print("-"*50)
-print("R1 Test:")
-print("-"*50)
-while True:
-    find = K.find_R1()
-    if find is None:
-        break
-    K.R1(find)
-print("\nNo more R1 Moves found.\n")
-print("_"*50)
-print("\n")
-
-print("-"*50)
-print("R2 Test:")
-print("-"*50)
-while True:
-    find = K.find_R2()
-    if find is None:
-        break
-    K.R2(find)
-print("\nNo more R2 Moves found.\n")
-print("_"*50)
-print("\n")
-
-print("-"*50)
-print("R3 Test:")
-print("-"*50)
-find = K.find_R3()
-if find is not None:
-    K.R3(find)
-print("\nNo more R3 Moves found.\n")
-print("_"*50)
-print("\n")
-
-
+print("R3 test:")
+K.R3(K.find_R3())
