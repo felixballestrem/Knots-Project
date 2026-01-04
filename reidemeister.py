@@ -35,11 +35,14 @@ class knot:
     def wrap(self, s):
         N = max(self.arcs())
         return (s - 1) % N + 1
+    
+    def cycle_in_place(self, num):
+        for i, crossing in enumerate(self.crossings):
+            k = num % 4
+            self.crossings[i] = crossing[k:] + crossing[:k]
+        print("New cycled Knot:\n", self.crossings)
 
 
-    # def crossing_sign(self, c):
-    #     # consistent PD convention
-    #     return 1 if (c[0], c[2]) != (c[1], c[3]) else -1
 
 #   -----------------------------------------------------------------------------------------------------------
 #   ## Reidemeister 1:
@@ -317,31 +320,39 @@ class knot:
             print("Third(Under) strand involved in R3 move: C = ", strand2)
             
             ## Implementation of R3 moves on the PD:
+            A = strand1
+            B = strand3
+            C = strand2
             
-            # works for under bottom going left, both going up:
-            if False:
-                A = strand1
-                B = strand3
-                C = strand2
+            right = False
+            up = False
+            for crossing in [c1, c2, c3]:
+                if crossing == [C[0], A[2], C[1], A[1]]:
+                    right = True
+                if crossing == [B[1], A[0], B[0], A[1]]:
+                    up = True
+            # AXC = [C[0], A[0], C[1], A[1]] # under bottom strand going right
+            # AXB = [B[1], A[2], B[2], A[1]] # both strand going up
+            # BXC = 
 
+            # works for under bottom going left, both going up:
+            if right == False and up == True:
+                print("left and up")
                 # Crossings
-                A_C = [B[0], A[1], B[1], A[0]] # A over C
-                A_B = [C[0], A[2], C[1], A[1]] # A over B
-                B_C = [C[1], B[2], C[2], B[1]] # B over C
+                A_C = [C[2], A[0], C[1], A[1]] # A over C
+                A_B = [B[2], A[1], B[1], A[2]] # A over B
+                B_C = [C[1], B[0], C[0], B[1]] # B over C
                 
                 print(A_C)
                 print(A_B)
                 print(B_C)
-            
-            # works for under bottom going right, both going up
-            elif False:
-                A = strand1
-                B = strand3
-                C = strand2
 
+            # works for under bottom going right, both going up
+            elif right == True and up == True:
+                print("right and up")
                 # Crossings
                 A_C = [C[1], A[1], C[2], A[0]] # A over C
-                A_B = [B[1], A[2], B[2], A[1]] # A over B
+                A_B = [B[2], A[1], B[1], A[2]] # A over B
                 B_C = [C[0], B[1], C[1], B[0]] # B over C
                 
                 print(A_C)
@@ -349,14 +360,11 @@ class knot:
                 print(B_C)
 
             # works for under bottom going right, both going down
-            elif True:
-                A = strand1
-                B = strand3
-                C = strand2
-                
+            elif right == True and up == False:
+                print("right and down")
                 # Crossings
                 A_C = [C[1], A[1], C[2], A[0]] # A over C
-                A_B = [B[2], A[1], B[1], A[2]] # A over B
+                A_B = [B[1], A[2], B[2], A[1]] # A over B
                 B_C = [C[0], B[1], C[1], B[0]] # B over C
                             
                 print(A_C)
@@ -364,15 +372,12 @@ class knot:
                 print(B_C)
                 
             # works for under bottom going left, both going down:
-            elif False:
-                A = strand1
-                B = strand3
-                C = strand2
-
+            elif right == False and up == False:
+                print("left and down")
                 # Crossings
-                A_C = [B[1], A[0], B[0], A[1]] # A over C
-                A_B = [C[0], A[2], C[1], A[1]] # A over B
-                B_C = [C[2], B[1], C[1], B[2]] # B over C
+                A_C = [C[2], A[0], C[1], A[1]] # A over C
+                A_B = [B[1], A[2], B[2], A[1]] # A over B
+                B_C = [C[1], B[0], C[0], B[1]] # B over C
                 
                 print(A_C)
                 print(A_B)
@@ -394,51 +399,54 @@ PD_test_R3 = [[4,2,5,1],[7,3,8,2],[8,6,1,5],[3,7,4,6]]
 
 PD = PD_test_R3
 
-# print("_"*50, "\n")
-# K = knot(PD)
-# print("_"*50, "\n")
-
-# print("-"*50)
-# print("R1 Test:")
-# print("-"*50)
-# while True:
-#     find = K.find_R1()
-#     if find is None:
-#         break
-#     K.R1(find)
-# print("\nNo more R1 Moves found.\n")
-# print("_"*50)
-# print("\n")
-
-# print("-"*50)
-# print("R2 Test:")
-# print("-"*50)
-# while True:
-#     find = K.find_R2()
-#     if find is None:
-#         break
-#     K.R2(find)
-# print("\nNo more R2 Moves found.\n")
-# print("_"*50)
-# print("\n")
-
-# print("-"*50)
-# print("R3 Test:")
-# print("-"*50)
-# find = K.find_R3()
-# if find is not None:
-#     K.R3(find)
-# print("\nNo more R3 Moves found.\n")
-# print("_"*50)
-# print("\n")
-
-PD1 = [[4,2,5,1],[8,6,1,5],[3,7,4,6]]
-PD2 = [[5,1,4,2],[8,6,1,5],[4,6,3,7]]
-PD3 = [[5,1,4,2],[1,5,8,6],[4,6,3,7]]
-PD4 = [[4,2,5,1],[1,5,8,6],[3,7,4,6]]
-
-PD = PD2
+print("_"*50, "\n")
 K = knot(PD)
+print("_"*50, "\n")
 
-print("R3 test:")
-K.R3(K.find_R3())
+print("-"*50)
+print("R1 Test:")
+print("-"*50)
+while True:
+    find = K.find_R1()
+    if find is None:
+        break
+    K.R1(find)
+print("\nNo more R1 Moves found.\n")
+print("_"*50)
+print("\n")
+
+print("-"*50)
+print("R2 Test:")
+print("-"*50)
+while True:
+    find = K.find_R2()
+    if find is None:
+        break
+    K.R2(find)
+print("\nNo more R2 Moves found.\n")
+print("_"*50)
+print("\n")
+
+print("-"*50)
+print("R3 Test:")
+print("-"*50)
+find = K.find_R3()
+if find is not None:
+    K.R3(find)
+print("\nNo more R3 Moves found.\n")
+print("_"*50)
+print("\n")
+
+# PD1 = [[4,2,5,1],[8,6,1,5],[3,7,4,6]]
+# PD2 = [[5,1,4,2],[8,6,1,5],[4,6,3,7]]
+# PD3 = [[5,1,4,2],[1,5,8,6],[4,6,3,7]]
+# PD4 = [[4,2,5,1],[1,5,8,6],[3,7,4,6]]
+
+# PD5 = [[3,1,4,8],[4,6,5,5],[1,7,2,6]]
+
+# PD = PD5
+# K = knot(PD)
+# # K.cycle_in_place(2)
+
+# print("R3 test:")
+# K.R3(K.find_R3())
