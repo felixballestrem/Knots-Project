@@ -49,6 +49,7 @@ class knot:
 #   -----------------------------------------------------------------------------------------------------------
     # detection:
     def find_R1(self):
+        print("\nSearching for R1 Moves")
         for i, c in enumerate(self.crossings):
             counts = {a: c.count(a) for a in c}
             if len(sorted(counts.values())) < 4: # == [1,1,2]: # If one of the arcs appears twice
@@ -109,7 +110,7 @@ class knot:
 
         # check all adjacent pairs of crossings
         for i in self.crossings:
-            print("\nCrossing:", i)
+            # print("\nCrossing:", i)
             for j in self.crossings:
                 # check if they share an over/under arc (are adjacent and suitable for R2)
                 over_arcs_i = [i[1], i[3]] # over arcs of crossing i
@@ -122,10 +123,10 @@ class knot:
                 if i == j:
                     continue
                 elif shared_over != set() and shared_under != set():
-                    print("Comparing with crossing:", j)
+                    # print("Comparing with crossing:", j)
                     
-                    print("Shared over arcs:", shared_over)
-                    print("Shared under arcs:", shared_under)
+                    # print("Shared over arcs:", shared_over)
+                    # print("Shared under arcs:", shared_under)
                     
                     # i and j are adjacent and share an over/under arc
                     print("Adjacent crossings R2 move found:", i, "and", j, "\n")
@@ -133,7 +134,8 @@ class knot:
                     idx2 = self.crossings.index(j)
                     return (idx1, idx2)
                 else:
-                    print("Comparing with crossing:", j)
+                    # print("Comparing with crossing:", j)
+                    None
         return None
 
     # solving:
@@ -198,7 +200,7 @@ class knot:
 #   -----------------------------------------------------------------------------------------------------------
     # detection:
     def find_R3(self, counts=counts):
-        print("Searching for Reidemeister Move 3")
+        print("\nSearching for R3 Moves")
 
         # check all triplets of crossings
         # check adjacency
@@ -228,8 +230,8 @@ class knot:
                             seen.add(key)
                             adjacent_list.append(crossings_triplet)
         
-        print("\nAdjacent crossing triplets found:")
-        print(*adjacent_list, sep="\n")
+        print("\nAdjacent crossing triplets found:") if adjacent_list != [] else None
+        print(*adjacent_list, sep="\n") if adjacent_list != [] else None
 
         # check R3 configuration for each adjacent triplet
         R3_list = []
@@ -274,13 +276,15 @@ class knot:
             print(*R3_list, sep="\n")
             print("With crossings:", *[[self.crossings[i] for i in c] for c in R3_list], sep="\n")
         else:
-            print("No R3 moves found")
+            # print("\nNo R3 moves found")
+            None
         return R3_list if (R3_list != []) else None
         
     # solving:
     def R3(self, idx=find_R3):
         print("\nPerforming Reidemeister Move 3")
         # Implementation of Reidemeister Move 3
+        new_crossings = []
         for triplet in idx:
             c1 = self.crossings[triplet[0]]
             c2 = self.crossings[triplet[1]]
@@ -324,64 +328,159 @@ class knot:
             B = strand3
             C = strand2
             
-            right = False
-            up = False
+            # over = False means the A strand goes from bottom left to top right or reverse
+            # up = False means the B strand goes down
+            # right = False means the C strand if at the bottom of the orientation goes left
+            count = 0
             for crossing in [c1, c2, c3]:
-                if crossing == [C[0], A[2], C[1], A[1]]:
-                    right = True
-                if crossing == [B[1], A[0], B[0], A[1]]:
+                if A[0] in crossing and C[1] in crossing:
+                    first = True
+                elif A[2] in crossing and C[1] in crossing:
+                    first = False
+                        
+                if crossing == [C[0], B[0], C[1], B[1]]:
+                    over = True
                     up = True
-            # AXC = [C[0], A[0], C[1], A[1]] # under bottom strand going right
-            # AXB = [B[1], A[2], B[2], A[1]] # both strand going up
-            # BXC = 
+                    right = True
+                    count += 1
+                        
+                elif crossing == [C[1], B[1], C[2], B[0]]:
+                    over = True
+                    up = True
+                    right = False
+                    count += 1
+                        
+                elif crossing == [C[0], B[2], C[1], B[1]]:
+                    over = True
+                    up = False
+                    right = True
+                    count += 1
+                        
+                elif crossing == [C[1], B[1], C[2], B[2]]:
+                    over = True
+                    up = False
+                    right = False
+                    count += 1
+                        
+                elif crossing == [C[1], B[0], C[2], B[1]]:
+                    over = False
+                    up = True
+                    right = True
+                    count += 1
 
-            # works for under bottom going left, both going up:
-            if right == False and up == True:
-                print("left and up")
+                elif crossing == [C[0], B[1], C[1], B[0]]:
+                    over = False
+                    up = True
+                    right = False
+                    count += 1
+                        
+                elif crossing == [C[1], B[2], C[2], B[1]]:
+                    over = False
+                    up = False
+                    right = True
+                    count += 1
+                        
+                elif crossing == [C[0], B[1], C[1], B[2]]:
+                    over = False
+                    up = False
+                    right = False
+                    count += 1
+            
+            try:
+                print(over, up, right, first)
+            except:
+                raise ValueError(f"No model fits crossings: {[c1,c2,c3]}")
+            if count > 1:
+                raise ValueError(f"More than one model fits, count: {count}")
+        
+            if first == True:
+                A_temp = list(A)
+                A_temp[0] = A[2]
+                A_temp[2] = A[0]
+                A = tuple(A_temp)
+
+            if up == True and right == True and over == True:
                 # Crossings
-                A_C = [C[2], A[0], C[1], A[1]] # A over C
-                A_B = [B[2], A[1], B[1], A[2]] # A over B
-                B_C = [C[1], B[0], C[0], B[1]] # B over C
+                A_C = [C[0], A[1], C[1], A[0]] # A over C
+                A_B = [B[0], A[2], B[1], A[1]] # A over B
+                B_C = [C[1], B[1], C[2], B[2]] # B over C
                 
                 print(A_C)
                 print(A_B)
                 print(B_C)
 
-            # works for under bottom going right, both going up
-            elif right == True and up == True:
-                print("right and up")
+            elif up == True and right == False and over == True:
                 # Crossings
-                A_C = [C[1], A[1], C[2], A[0]] # A over C
-                A_B = [B[2], A[1], B[1], A[2]] # A over B
-                B_C = [C[0], B[1], C[1], B[0]] # B over C
+                A_C = [C[2], A[1], C[1], A[0]] # A over C
+                A_B = [B[0], A[2], B[1], A[1]] # A over B
+                B_C = [C[0], B[2], C[1], B[1]] # B over C
                 
                 print(A_C)
                 print(A_B)
                 print(B_C)
 
-            # works for under bottom going right, both going down
-            elif right == True and up == False:
-                print("right and down")
+            elif up == False and right == True and over == True:
                 # Crossings
-                A_C = [C[1], A[1], C[2], A[0]] # A over C
-                A_B = [B[1], A[2], B[2], A[1]] # A over B
-                B_C = [C[0], B[1], C[1], B[0]] # B over C
+                A_C = [C[0], A[1], C[1], A[0]] # A over C
+                A_B = [B[1], A[1], B[2], A[2]] # A over B
+                B_C = [C[1], B[1], C[2], B[0]] # B over C
                             
                 print(A_C)
                 print(A_B)
                 print(B_C)
                 
-            # works for under bottom going left, both going down:
-            elif right == False and up == False:
-                print("left and down")
+            elif up == False and right == False and over == True:
                 # Crossings
-                A_C = [C[2], A[0], C[1], A[1]] # A over C
-                A_B = [B[1], A[2], B[2], A[1]] # A over B
-                B_C = [C[1], B[0], C[0], B[1]] # B over C
+                A_C = [C[2], A[1], C[1], A[0]] # A over C
+                A_B = [B[1], A[1], B[2], A[2]] # A over B
+                B_C = [C[0], B[0], C[1], B[1]] # B over C
                 
                 print(A_C)
                 print(A_B)
                 print(B_C)
+                
+            elif up == True and right == True and over == False:
+                # Crossings
+                A_C = [C[1], A[1], C[2], A[0]] # A over C
+                A_B = [B[0], A[1], B[1], A[2]] # A over B
+                B_C = [C[0], B[1], C[1], B[2]] # B over C
+                
+                print(A_C)
+                print(A_B)
+                print(B_C)
+                
+            elif up == True and right == False and over == False:
+                # Crossings
+                A_C = [C[0], A[0], C[1], A[1]] # A over C
+                A_B = [B[0], A[1], B[1], A[2]] # A over B
+                B_C = [C[1], B[2], C[2], B[1]] # B over C
+                
+                print(A_C)
+                print(A_B)
+                print(B_C)
+                
+            elif up == False and right == True and over == False:
+                # Crossings
+                A_C = [C[1], A[1], C[2], A[0]] # A over C
+                A_B = [B[1], A[2], B[2], A[1]] # A over B
+                B_C = [C[0], B[1], C[1], B[0]] # B over C
+                
+                print(A_C)
+                print(A_B)
+                print(B_C)
+                
+            elif up == False and right == False and over == False:
+                # Crossings
+                A_C = [C[0], A[0], C[1], A[1]] # A over C
+                A_B = [B[1], A[2], B[2], A[1]] # A over B
+                B_C = [C[1], B[0], C[2], B[1]] # B over C
+                
+                print(A_C)
+                print(A_B)
+                print(B_C)
+            new_crossings.append([A_C, A_B, B_C])
+        
+        return new_crossings if new_crossings != [] else None
 
 
 
@@ -392,50 +491,76 @@ class knot:
 # computing it on a test PD
 
 PD_test_rand = [[1, 6, 2, 5], [3, 8, 4, 7], [5, 2, 6, 1], [7, 4, 8, 3]]
-PD_test_t = [[1,5,2,4],[3,1,4,6],[5,3,6,2]]
+PD_test_trefoil = [[1,5,2,4],[3,1,4,6],[5,3,6,2]]
 PD_test_R1 = [[8,3,1,4],[6,6,7,5],[4,1,5,2],[2,7,3,8]]
 PD_test_R2 = [[10,3,1,4],[5,9,6,8],[9,5,10,4],[1,7,2,6],[7,3,8,2]]
 PD_test_R3 = [[4,2,5,1],[7,3,8,2],[8,6,1,5],[3,7,4,6]]
+PD_test_R3_2 = [[8,4,9,5],[2,5,3,6],[7,1,8,2]]
 
-PD = PD_test_R3
+PD = PD_test_R3_2
 
 print("_"*50, "\n")
 K = knot(PD)
 print("_"*50, "\n")
 
-print("-"*50)
-print("R1 Test:")
-print("-"*50)
-while True:
-    find = K.find_R1()
-    if find is None:
-        break
-    K.R1(find)
-print("\nNo more R1 Moves found.\n")
-print("_"*50)
-print("\n")
+def run_R1(K=K):
+    print("-"*50)
+    print("R1 Test:")
+    print("-"*50)
+    found = False
+    while True:
+        find = K.find_R1()
+        if find is None:
+            break
+        K.R1(find)
+        found = True
+    print("\nNo more R1 Moves found.\n")
+    print("_"*50)
+    print("\n")
+    return found
 
-print("-"*50)
-print("R2 Test:")
-print("-"*50)
-while True:
-    find = K.find_R2()
-    if find is None:
-        break
-    K.R2(find)
-print("\nNo more R2 Moves found.\n")
-print("_"*50)
-print("\n")
+def run_R2(K=K):
+    print("-"*50)
+    print("R2 Test:")
+    print("-"*50)
+    found = False
+    while True:
+        find = K.find_R2()
+        if find is None:
+            break
+        K.R2(find)
+        found = True
+    print("\nNo more R2 Moves found.\n")
+    print("_"*50)
+    print("\n")
+    return found
 
-print("-"*50)
-print("R3 Test:")
-print("-"*50)
-find = K.find_R3()
-if find is not None:
-    K.R3(find)
-print("\nNo more R3 Moves found.\n")
-print("_"*50)
-print("\n")
+def run_R3(K=K):
+    print("-"*50)
+    print("R3 Test:")
+    print("-"*50)
+    find = K.find_R3()
+    if find is not None:
+        K.R3(find)
+    print("\nNo more R3 Moves found.\n")
+    print("_"*50)
+    print("\n")
+
+def R12():
+    while run_R1() == True or run_R2() == True:
+        # run R1 first
+        run_R1()
+        # then run R2
+        run_R2()
+        # loop these until none left
+
+R12()
+# then check possible combinations of R3
+run_R3()
+# if the combination has R1 or R2 then use it and simplify
+# if no more R3 moves simplify the knot, end
+    
+    
 
 # PD1 = [[4,2,5,1],[8,6,1,5],[3,7,4,6]]
 # PD2 = [[5,1,4,2],[8,6,1,5],[4,6,3,7]]
