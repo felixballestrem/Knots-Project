@@ -230,8 +230,8 @@ class knot:
                             seen.add(key)
                             adjacent_list.append(crossings_triplet)
         
-        print("\nAdjacent crossing triplets found:") if adjacent_list != [] else None
-        print(*adjacent_list, sep="\n") if adjacent_list != [] else None
+        # print("\nAdjacent crossing triplets found:") if adjacent_list != [] else None
+        # print(*adjacent_list, sep="\n") if adjacent_list != [] else None
 
         # check R3 configuration for each adjacent triplet
         R3_list = []
@@ -272,9 +272,10 @@ class knot:
                 # print("No R3 configuration with crossings:", i, ",", j, "and", k)
                 
         if R3_list != []:
-            print("\nR3 Moves found at crossing indexes:")
-            print(*R3_list, sep="\n")
-            print("With crossings:", *[[self.crossings[i] for i in c] for c in R3_list], sep="\n")
+            # print("\nR3 Moves found at crossing indexes:")
+            # print(*R3_list, sep="\n")
+            # print("With crossings:", *[[self.crossings[i] for i in c] for c in R3_list], sep="\n")
+            print("R3 moves found at crossings:", *[[self.crossings[i] for i in c] for c in R3_list], sep="\n")
         else:
             # print("\nNo R3 moves found")
             None
@@ -387,7 +388,8 @@ class knot:
                     count += 1
             
             try:
-                print(over, up, right, first)
+                if (over, up, right, first) == True:
+                    None
             except:
                 raise ValueError(f"No model fits crossings: {[c1,c2,c3]}")
             if count > 1:
@@ -480,6 +482,18 @@ class knot:
                 print(B_C)
             new_crossings.append([A_C, A_B, B_C])
         
+        if new_crossings == []:
+            raise ValueError("New crossings not found")
+        else:
+            total_knots = [self.crossings]
+            for i in range(len(idx)):
+                replace = new_crossings[i]
+                places = idx[i]
+                new_knot = self.crossings
+                for each in range(3):
+                    self.crossings[places[each]] = replace[each]
+                new_knot = self.crossings
+                total_knots.append(new_knot)
         return new_crossings if new_crossings != [] else None
 
 
@@ -499,14 +513,14 @@ PD_test_R3_2 = [[8,4,9,5],[2,5,3,6],[7,1,8,2]]
 
 PD = PD_test_R3_2
 
-print("_"*50, "\n")
+print("_"*100, "\n")
 K = knot(PD)
-print("_"*50, "\n")
+print()
 
 def run_R1(K=K):
-    print("-"*50)
+    print("-"*100)
     print("R1 Test:")
-    print("-"*50)
+    print("-"*100)
     found = False
     while True:
         find = K.find_R1()
@@ -515,14 +529,12 @@ def run_R1(K=K):
         K.R1(find)
         found = True
     print("\nNo more R1 Moves found.\n")
-    print("_"*50)
-    print("\n")
     return found
 
 def run_R2(K=K):
-    print("-"*50)
+    print("-"*100)
     print("R2 Test:")
-    print("-"*50)
+    print("-"*100)
     found = False
     while True:
         find = K.find_R2()
@@ -531,33 +543,28 @@ def run_R2(K=K):
         K.R2(find)
         found = True
     print("\nNo more R2 Moves found.\n")
-    print("_"*50)
-    print("\n")
     return found
 
 def run_R3(K=K):
-    print("-"*50)
+    print("-"*100)
     print("R3 Test:")
-    print("-"*50)
+    print("-"*100)
     find = K.find_R3()
     if find is not None:
         K.R3(find)
     print("\nNo more R3 Moves found.\n")
-    print("_"*50)
-    print("\n")
 
 def R12():
-    while run_R1() == True or run_R2() == True:
-        # run R1 first
-        run_R1()
-        # then run R2
-        run_R2()
-        # loop these until none left
+    while True:
+        R1 = run_R1()
+        R2 = run_R2()
+        if R1 == False or R2 == False:
+            break
 
-R12()
+R12() # simplifies all R1 and R2
+
 # then check possible combinations of R3
 run_R3()
-# if the combination has R1 or R2 then use it and simplify
 # if no more R3 moves simplify the knot, end
     
     
