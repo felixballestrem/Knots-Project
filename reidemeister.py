@@ -1,6 +1,6 @@
 #   -----------------------------------------------------------------------------------------------------------
 #   ===========================================================================================================
-
+import copy
 #   ===========================================================================================================
 # Reidemeister moves
 #   ===========================================================================================================
@@ -485,16 +485,16 @@ class knot:
         if new_crossings == []:
             raise ValueError("New crossings not found")
         else:
-            total_knots = [self.crossings]
+            total_knots = [copy.deepcopy(self.crossings)]
             for i in range(len(idx)):
                 replace = new_crossings[i]
                 places = idx[i]
-                new_knot = self.crossings
+                new_knot = copy.deepcopy(self.crossings)
                 for each in range(3):
                     self.crossings[places[each]] = replace[each]
-                new_knot = self.crossings
-                total_knots.append(new_knot)
-        return new_crossings if new_crossings != [] else None
+                new_knot = copy.deepcopy(self.crossings)
+                total_knots.append(copy.deepcopy(new_knot))
+        return total_knots if total_knots != [] else None
 
 
 
@@ -551,8 +551,9 @@ def run_R3(K=K):
     print("-"*100)
     find = K.find_R3()
     if find is not None:
-        K.R3(find)
+        knots = K.R3(find)
     print("\nNo more R3 Moves found.\n")
+    return knots
 
 def R12():
     while True:
@@ -564,21 +565,7 @@ def R12():
 R12() # simplifies all R1 and R2
 
 # then check possible combinations of R3
-run_R3()
-# if no more R3 moves simplify the knot, end
+print(*run_R3(), sep="\n")
+# if no more R3 moves simplify the knot, end 
     
-    
 
-# PD1 = [[4,2,5,1],[8,6,1,5],[3,7,4,6]]
-# PD2 = [[5,1,4,2],[8,6,1,5],[4,6,3,7]]
-# PD3 = [[5,1,4,2],[1,5,8,6],[4,6,3,7]]
-# PD4 = [[4,2,5,1],[1,5,8,6],[3,7,4,6]]
-
-# PD5 = [[3,1,4,8],[4,6,5,5],[1,7,2,6]]
-
-# PD = PD5
-# K = knot(PD)
-# # K.cycle_in_place(2)
-
-# print("R3 test:")
-# K.R3(K.find_R3())
