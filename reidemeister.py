@@ -396,7 +396,7 @@ class knot:
             if count > 1:
                 raise ValueError(f"More than one model fits, count: {count}")
         
-            if first == True:
+            if first == False:
                 A_temp = list(A)
                 A_temp[0] = A[2]
                 A_temp[2] = A[0]
@@ -405,7 +405,7 @@ class knot:
             p = True # print statement
             if up == True and right == True and over == True:
                 if p == True:
-                    print(first, right, up)
+                    print(first, up, right, over)
                 # Crossings
                 A_C = [C[0], A[1], C[1], A[0]] # A over C
                 A_B = [B[0], A[2], B[1], A[1]] # A over B
@@ -417,7 +417,7 @@ class knot:
 
             elif up == True and right == False and over == True:
                 if p == True:
-                    print(first, right, up)
+                    print(first, up, right, over)
                 # Crossings
                 A_C = [C[2], A[1], C[1], A[0]] # A over C
                 A_B = [B[0], A[2], B[1], A[1]] # A over B
@@ -429,7 +429,7 @@ class knot:
 
             elif up == False and right == True and over == True:
                 if p == True:
-                    print(first, right, up)
+                    print(first, up, right, over)
                 # Crossings
                 A_C = [C[0], A[1], C[1], A[0]] # A over C
                 A_B = [B[1], A[1], B[2], A[2]] # A over B
@@ -441,7 +441,7 @@ class knot:
                 
             elif up == False and right == False and over == True:
                 if p == True:
-                    print(first, right, up)
+                    print(first, up, right, over)
                 # Crossings
                 A_C = [C[2], A[1], C[1], A[0]] # A over C
                 A_B = [B[1], A[1], B[2], A[2]] # A over B
@@ -453,7 +453,7 @@ class knot:
                 
             elif up == True and right == True and over == False:
                 if p == True:
-                    print(first, right, up)
+                    print(first, up, right, over)
                 # Crossings
                 A_C = [C[1], A[1], C[2], A[0]] # A over C
                 A_B = [B[0], A[1], B[1], A[2]] # A over B
@@ -465,7 +465,7 @@ class knot:
                 
             elif up == True and right == False and over == False:
                 if p == True:
-                    print(first, right, up)
+                    print(first, up, right, over)
                 # Crossings
                 A_C = [C[0], A[0], C[1], A[1]] # A over C
                 A_B = [B[0], A[1], B[1], A[2]] # A over B
@@ -477,7 +477,7 @@ class knot:
                 
             elif up == False and right == True and over == False:
                 if p == True:
-                    print(first, right, up)
+                    print(first, up, right, over)
                 # Crossings
                 A_C = [C[1], A[1], C[2], A[0]] # A over C
                 A_B = [B[1], A[2], B[2], A[1]] # A over B
@@ -489,7 +489,7 @@ class knot:
                 
             elif up == False and right == False and over == False:
                 if p == True:
-                    print(first, right, up)
+                    print(first, up, right, over)
                 # Crossings
                 A_C = [C[0], A[0], C[1], A[1]] # A over C
                 A_B = [B[1], A[2], B[2], A[1]] # A over B
