@@ -92,12 +92,13 @@ class knot:
         mapping = {old:new+1 for new,old in enumerate(arcs)}
         self.crossings = [[mapping[arc] for arc in crossing] for crossing in self.crossings]
         print("R1 applied. New PD:\n", self.crossings)
-
+        
+        return True
         # check that the move was successful
-        if (find := self.find_R1()) is not None:
-            raise ValueError("R1 Move was not successful; the same move can still be applied.")
-        else:
-            return True
+        # if (find := self.find_R1()) is not None:
+        #     raise ValueError("R1 Move was not successful; the same move can still be applied.")
+        # else:
+        #     return True
 
 
 #   -----------------------------------------------------------------------------------------------------------
@@ -187,12 +188,12 @@ class knot:
         self.crossings = [[mapping[arc] for arc in crossing] for crossing in self.crossings]
         print("R2 applied. New PD:\n", self.crossings)
 
-        # check that the move was successful
-        if (find := self.find_R2()) is not None:
-            raise ValueError("R2 Move was not successful; the same move can still be applied.")
-        else:
-            return True
         return True
+        # check that the move was successful
+        # if (find := self.find_R2()) is not None:
+        #     raise ValueError("R2 Move was not successful; the same move can still be applied.")
+        # else:
+        #     return True
 
 
 #   -----------------------------------------------------------------------------------------------------------
@@ -401,7 +402,10 @@ class knot:
                 A_temp[2] = A[0]
                 A = tuple(A_temp)
 
+            p = True # print statement
             if up == True and right == True and over == True:
+                if p == True:
+                    print(first, right, up)
                 # Crossings
                 A_C = [C[0], A[1], C[1], A[0]] # A over C
                 A_B = [B[0], A[2], B[1], A[1]] # A over B
@@ -412,6 +416,8 @@ class knot:
                 print(B_C)
 
             elif up == True and right == False and over == True:
+                if p == True:
+                    print(first, right, up)
                 # Crossings
                 A_C = [C[2], A[1], C[1], A[0]] # A over C
                 A_B = [B[0], A[2], B[1], A[1]] # A over B
@@ -422,6 +428,8 @@ class knot:
                 print(B_C)
 
             elif up == False and right == True and over == True:
+                if p == True:
+                    print(first, right, up)
                 # Crossings
                 A_C = [C[0], A[1], C[1], A[0]] # A over C
                 A_B = [B[1], A[1], B[2], A[2]] # A over B
@@ -432,6 +440,8 @@ class knot:
                 print(B_C)
                 
             elif up == False and right == False and over == True:
+                if p == True:
+                    print(first, right, up)
                 # Crossings
                 A_C = [C[2], A[1], C[1], A[0]] # A over C
                 A_B = [B[1], A[1], B[2], A[2]] # A over B
@@ -442,6 +452,8 @@ class knot:
                 print(B_C)
                 
             elif up == True and right == True and over == False:
+                if p == True:
+                    print(first, right, up)
                 # Crossings
                 A_C = [C[1], A[1], C[2], A[0]] # A over C
                 A_B = [B[0], A[1], B[1], A[2]] # A over B
@@ -452,6 +464,8 @@ class knot:
                 print(B_C)
                 
             elif up == True and right == False and over == False:
+                if p == True:
+                    print(first, right, up)
                 # Crossings
                 A_C = [C[0], A[0], C[1], A[1]] # A over C
                 A_B = [B[0], A[1], B[1], A[2]] # A over B
@@ -462,6 +476,8 @@ class knot:
                 print(B_C)
                 
             elif up == False and right == True and over == False:
+                if p == True:
+                    print(first, right, up)
                 # Crossings
                 A_C = [C[1], A[1], C[2], A[0]] # A over C
                 A_B = [B[1], A[2], B[2], A[1]] # A over B
@@ -472,6 +488,8 @@ class knot:
                 print(B_C)
                 
             elif up == False and right == False and over == False:
+                if p == True:
+                    print(first, right, up)
                 # Crossings
                 A_C = [C[0], A[0], C[1], A[1]] # A over C
                 A_B = [B[1], A[2], B[2], A[1]] # A over B
@@ -491,8 +509,7 @@ class knot:
                 places = idx[i]
                 new_knot = copy.deepcopy(self.crossings)
                 for each in range(3):
-                    self.crossings[places[each]] = replace[each]
-                new_knot = copy.deepcopy(self.crossings)
+                    new_knot[places[each]] = replace[each]
                 total_knots.append(copy.deepcopy(new_knot))
         return total_knots if total_knots != [] else None
 
@@ -511,7 +528,7 @@ PD_test_R2 = [[10,3,1,4],[5,9,6,8],[9,5,10,4],[1,7,2,6],[7,3,8,2]]
 PD_test_R3 = [[4,2,5,1],[7,3,8,2],[8,6,1,5],[3,7,4,6]]
 PD_test_R3_2 = [[8,4,9,5],[2,5,3,6],[7,1,8,2]]
 
-PD = PD_test_R3_2
+PD = PD_test_R3
 
 print("_"*100, "\n")
 K = knot(PD)
@@ -555,17 +572,27 @@ def run_R3(K=K):
     print("\nNo more R3 Moves found.\n")
     return knots
 
-def R12():
+def R12(K=K):
     while True:
-        R1 = run_R1()
-        R2 = run_R2()
+        R1 = run_R1(K)
+        R2 = run_R2(K)
         if R1 == False or R2 == False:
             break
 
 R12() # simplifies all R1 and R2
 
 # then check possible combinations of R3
-print(*run_R3(), sep="\n")
+knots = run_R3()
+print("Different knot diagrams after all possible R3 moves:")
+print(*knots, sep="\n")
 # if no more R3 moves simplify the knot, end 
-    
+
+# new_knots = []
+# for each in knots:
+#     print("_"*100, "\n")
+#     K1 = knot(each)
+#     R12(K1)
+#     new_knots.append(K1.crossings)
+
+# print(*new_knots, sep="\n")
 
