@@ -301,8 +301,8 @@ class knot:
             # print("Over strands:", strands_over)
             # print("Under strands:", strands_under)    
             # get rid of duplicates
-            strands_over = list(set(strands_over))
-            strands_under = list(set(strands_under))
+            # strands_over = list(set(strands_over))
+            # strands_under = list(set(strands_under))
             # print("Unique over strands:", strands_over)
             # print("Unique under strands:", strands_under)
             
@@ -312,18 +312,42 @@ class knot:
                 s2 = self.wrap(each + 2)
                 if s1 in strands_over and s2 in strands_over:
                     strand1 = (each, s1, s2)
+                    strands_over.pop(strands_over.index(each))
+                    strands_over.pop(strands_over.index(s1))
+                    strands_over.pop(strands_over.index(s1))
+                    strands_over.pop(strands_over.index(s2))
+                
+                    
             for each in strands_under:
                 s1 = self.wrap(each + 1)
                 s2 = self.wrap(each + 2)
                 if s1 in strands_under and s2 in strands_under:
                     strand2 = (each, s1, s2)
-            strands = set(strands_over + strands_under)
-            # print("Strands involved in R3 move:", strands)
-            strand3 = tuple(set(strands) - set(strand1) - set(strand2))
+                    strands_under.pop(strands_under.index(each))
+                    strands_under.pop(strands_under.index(s1))
+                    strands_under.pop(strands_under.index(s1))
+                    strands_under.pop(strands_under.index(s2))
             
-            print("First(Over) strand involved in R3 move: A = ", strand1)
-            print("Second(Over-Under) strand involved in R3 move: B = ", strand3)
-            print("Third(Under) strand involved in R3 move: C = ", strand2)
+            # print(strands_under, strands_over)
+            joint = list(set(strands_over).intersection(set(strands_under)))
+            # print(joint[0])
+            strands_under.pop(strands_under.index(joint[0]))
+            strands_over.pop(strands_over.index(joint[0]))
+            # print(strands_under, strands_over)
+
+            strand3 = []
+            strand3.extend(strands_over)
+            strand3.extend(joint)
+            strand3.extend(strands_under)
+            strand3 = tuple(strand3)
+            # strand3.sort()
+            
+            # print("Strands involved in R3 move:", strands)
+            # strand3 = tuple(set(strands) - set(strand1) - set(strand2))
+            
+            # print("First(Over) strand involved in R3 move: A = ", strand1)
+            # print("Second(Over-Under) strand involved in R3 move: B = ", strand3)
+            # print("Third(Under) strand involved in R3 move: C = ", strand2)
             
             ## Implementation of R3 moves on the PD:
             A = strand1
@@ -334,60 +358,68 @@ class knot:
             # up = False means the B strand goes down
             # right = False means the C strand if at the bottom of the orientation goes left
             count = 0
+            # check if B strand is going up or down
+            if B[1] == self.wrap(B[0]+1) and B[1] == self.wrap(B[2]-1):
+                up = True
+            else:
+                up = False
             for crossing in [c1, c2, c3]:
-                if A[0] in crossing and C[1] in crossing:
+                ## check if A strand is going up or down
+                if A[0] in crossing and C[1] in crossing and A[1] in crossing:
                     first = True
-                elif A[2] in crossing and C[1] in crossing:
+                elif A[2] in crossing and C[1] in crossing and A[1] in crossing:
                     first = False
-                        
+                
+                # check  if A goes diagonally up or down, down = True
+                # check if C goes left or right
                 if crossing == [C[0], B[0], C[1], B[1]]:
                     over = True
-                    up = True
+                    # up = True
                     right = True
                     count += 1
                         
                 elif crossing == [C[1], B[1], C[2], B[0]]:
                     over = True
-                    up = True
+                    # up = True
                     right = False
                     count += 1
                         
-                elif crossing == [C[0], B[2], C[1], B[1]]:
-                    over = True
-                    up = False
-                    right = True
-                    count += 1
+                # elif crossing == [C[0], B[2], C[1], B[1]]:
+                #     over = True
+                #     up = False
+                #     right = True
+                #     count += 1
                         
-                elif crossing == [C[1], B[1], C[2], B[2]]:
-                    over = True
-                    up = False
-                    right = False
-                    count += 1
+                # elif crossing == [C[1], B[1], C[2], B[2]]:
+                #     over = True
+                #     up = False
+                #     right = False
+                #     count += 1
                         
                 elif crossing == [C[1], B[0], C[2], B[1]]:
                     over = False
-                    up = True
+                    # up = True
                     right = True
                     count += 1
 
                 elif crossing == [C[0], B[1], C[1], B[0]]:
                     over = False
-                    up = True
+                    # up = True
                     right = False
                     count += 1
                         
-                elif crossing == [C[1], B[2], C[2], B[1]]:
-                    over = False
-                    up = False
-                    right = True
-                    count += 1
+                # elif crossing == [C[1], B[2], C[2], B[1]]:
+                #     over = False
+                #     up = False
+                #     right = True
+                #     count += 1
                         
-                elif crossing == [C[0], B[1], C[1], B[2]]:
-                    over = False
-                    up = False
-                    right = False
-                    count += 1
-            
+                # elif crossing == [C[0], B[1], C[1], B[2]]:
+                #     over = False
+                #     up = False
+                #     right = False
+                #     count += 1
+
             try:
                 if (over, up, right, first) == True:
                     None
@@ -397,15 +429,27 @@ class knot:
                 raise ValueError(f"More than one model fits, count: {count}")
         
             if first == False:
-                A_temp = list(A)
-                A_temp[0] = A[2]
-                A_temp[2] = A[0]
-                A = tuple(A_temp)
+                A_temp = [A[2], A[1], A[0]]
+                A = A_temp
+                
+            A_temp = [A[2], A[1], A[0]]
+            A = A_temp
+            
+            if up == False:
+                B_temp = [B[2], B[1], B[0]]
+                B = B_temp
+                
+            print("First(Over) strand involved in R3 move: A = ", A)
+            print("Second(Over-Under) strand involved in R3 move: B = ", B)
+            print("Third(Under) strand involved in R3 move: C = ", C)
 
             p = True # print statement
-            if up == True and right == True and over == True:
+            def pri(p=p):
                 if p == True:
-                    print(first, up, right, over)
+                    print("\nfirst:",first, "\nup:",up, "\nright:",right, "\nover:",over,"\n")
+                    
+            if up == True and right == True and over == True:
+                pri()
                 # Crossings
                 A_C = [C[0], A[1], C[1], A[0]] # A over C
                 A_B = [B[0], A[2], B[1], A[1]] # A over B
@@ -416,8 +460,7 @@ class knot:
                 print(B_C)
 
             elif up == True and right == False and over == True:
-                if p == True:
-                    print(first, up, right, over)
+                pri()
                 # Crossings
                 A_C = [C[2], A[1], C[1], A[0]] # A over C
                 A_B = [B[0], A[2], B[1], A[1]] # A over B
@@ -426,34 +469,9 @@ class knot:
                 print(A_C)
                 print(A_B)
                 print(B_C)
-
-            elif up == False and right == True and over == True:
-                if p == True:
-                    print(first, up, right, over)
-                # Crossings
-                A_C = [C[0], A[1], C[1], A[0]] # A over C
-                A_B = [B[1], A[1], B[2], A[2]] # A over B
-                B_C = [C[1], B[1], C[2], B[0]] # B over C
-                            
-                print(A_C)
-                print(A_B)
-                print(B_C)
-                
-            elif up == False and right == False and over == True:
-                if p == True:
-                    print(first, up, right, over)
-                # Crossings
-                A_C = [C[2], A[1], C[1], A[0]] # A over C
-                A_B = [B[1], A[1], B[2], A[2]] # A over B
-                B_C = [C[0], B[0], C[1], B[1]] # B over C
-                
-                print(A_C)
-                print(A_B)
-                print(B_C)
                 
             elif up == True and right == True and over == False:
-                if p == True:
-                    print(first, up, right, over)
+                pri()
                 # Crossings
                 A_C = [C[1], A[1], C[2], A[0]] # A over C
                 A_B = [B[0], A[1], B[1], A[2]] # A over B
@@ -464,8 +482,7 @@ class knot:
                 print(B_C)
                 
             elif up == True and right == False and over == False:
-                if p == True:
-                    print(first, up, right, over)
+                pri()
                 # Crossings
                 A_C = [C[0], A[0], C[1], A[1]] # A over C
                 A_B = [B[0], A[1], B[1], A[2]] # A over B
@@ -474,10 +491,31 @@ class knot:
                 print(A_C)
                 print(A_B)
                 print(B_C)
+
+            elif up == False and right == True and over == True:
+                pri()
+                # Crossings
+                A_C = [C[0], A[1], C[1], A[0]] # A over C
+                A_B = [B[1], A[1], B[2], A[2]] # A over B
+                B_C = [C[1], B[1], C[2], B[0]] # B over C
+                            
+                print(A_C)
+                print(A_B)
+                print(B_C)
+                
+            elif up == False and right == False and over == True:
+                pri()
+                # Crossings
+                A_C = [C[2], A[1], C[1], A[0]] # A over C
+                A_B = [B[1], A[1], B[2], A[2]] # A over B
+                B_C = [C[0], B[0], C[1], B[1]] # B over C
+                
+                print(A_C)
+                print(A_B)
+                print(B_C)
                 
             elif up == False and right == True and over == False:
-                if p == True:
-                    print(first, up, right, over)
+                pri()
                 # Crossings
                 A_C = [C[1], A[1], C[2], A[0]] # A over C
                 A_B = [B[1], A[2], B[2], A[1]] # A over B
@@ -488,8 +526,7 @@ class knot:
                 print(B_C)
                 
             elif up == False and right == False and over == False:
-                if p == True:
-                    print(first, up, right, over)
+                pri()
                 # Crossings
                 A_C = [C[0], A[0], C[1], A[1]] # A over C
                 A_B = [B[1], A[2], B[2], A[1]] # A over B
@@ -587,6 +624,7 @@ print("Different knot diagrams after all possible R3 moves:")
 print(*knots, sep="\n")
 # if no more R3 moves simplify the knot, end 
 
+## simplify after R3:
 # new_knots = []
 # for each in knots:
 #     print("_"*100, "\n")
